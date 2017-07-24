@@ -7,12 +7,13 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.StringUtils;
 import org.stringtemplate.v4.ST;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,19 +31,31 @@ public class GameHandler extends AbstractMojo {
     private File[] inputDirectories;
     @Component
     private MavenProject project;
-    private String template = getTemplate();
+    private String template = getTemplate("/Handler.java");
     private String handlerDir;
+    private String generateTargetDir;
+    private String clientProto;
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         getLog().info("-----------------------start create handler---------------------------------");
-        String protobufDir = project.getBasedir().getPath() + DEFAULT_INPUT_DIR;
-        String clientProto = protobufDir + "Client.proto";
+        init();
+        List<Entity> entities = getAllEntities();
+        buildInCommands(entities);
+        buildHandlers(entities);
+    }
 
-        String pack = "/com/luwei/game/handler/test/".replace('/', File.separatorChar);
-        String path = project.getBuild().getSourceDirectory() + pack;
+    private void init() {
+        String protobufDir = project.getBasedir().getPath() + DEFAULT_INPUT_DIR;
+        clientProto = protobufDir + "Client.proto";
+        String pack = "/com/luwei/game/handler/new/".replace('/', File.separatorChar);
         handlerDir = project.getBuild().getSourceDirectory() + pack;
-        File handlerDirFile = new File(handlerDir);
-        handlerDirFile.mkdirs();
+        generateTargetDir = project.getBuild().getDirectory() + File.separator + "generated-sources" + pack;
+        FileUtils.mkdir(handlerDir);
+        FileUtils.mkdir(generateTargetDir);
+    }
+
+    private List<Entity> getAllEntities() {
+        List<Entity> entities = new ArrayList<>();
         try {
             Pattern p = Pattern.compile("//(\\d)+:(\\w+) (.*)$");
 
@@ -54,23 +67,53 @@ public class GameHandler extends AbstractMojo {
                     int cmd = Integer.parseInt(matcher.group(1));
                     String msg = matcher.group(2);
                     String comment = matcher.group(3);
-                    createHandler(cmd, msg, comment);
+                    Entity entity = new Entity(cmd, msg, comment);
+                    entities.add(entity);
                 }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        return entities;
+    }
 
-        for (File inputDirectory : inputDirectories) {
-            getLog().info(inputDirectory.getAbsolutePath());
+    private void buildInCommands(List<Entity> entities) {
+        StringBuilder sb = new StringBuilder();
+        for (Entity entity : entities) {
+            ST line = new ST("    int <msg> = <cmd>;//<comment>\r\n");
+            line.add("msg", entity.getMsg());
+            line.add("cmd", entity.getCmd());
+            line.add("comment", entity.getComment());
+            sb.append(line.render());
+        }
+        ST content = new ST(getTemplate("/InCommands.java"));
+        content.add("lines", sb.toString());
+        FileWriter writer = null;
+        try {
+            writer = new FileWriter(generateTargetDir + "InCommands.java");
+            writer.write(content.render());
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+        }
+    }
+
+    private void buildHandlers(List<Entity> entities) {
+        for (Entity entity : entities) {
+            try {
+                createHandler(entity.getCmd(), entity.getMsg(), entity.getComment());
+            } catch (IOException ignored) {
+            }
         }
     }
 
     private void createHandler(int cmd, String msg, String comment) throws IOException {
-        File file = new File(handlerDir + msg+"Handler.java");
+        File file = new File(handlerDir + msg + "Handler.java");
         if (!file.exists()) {
             ST st = new ST(template, '$', '$');
+            st.add("cmd", cmd);
             st.add("msg", msg);
+            st.add("comment", comment);
             String content = st.render();
             file.createNewFile();
             FileWriter writer = new FileWriter(file);
@@ -81,8 +124,8 @@ public class GameHandler extends AbstractMojo {
         }
     }
 
-    private String getTemplate()  {
-        InputStream templateInputStream = this.getClass().getResourceAsStream("/template.java");
+    private String getTemplate(String file) {
+        InputStream templateInputStream = this.getClass().getResourceAsStream(file);
         StringWriter stringWriter = new StringWriter();
         try {
             IOUtil.copy(templateInputStream, stringWriter, "utf-8");
