@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
  * cmd: $cmd$
  * comment: $comment$
  */
-@Component
 @OutCommand(OutCommands.$cmdKey$)
 public class $cmdKey$Handler extends OutCommandHandler<Server.$msg$> {
 
