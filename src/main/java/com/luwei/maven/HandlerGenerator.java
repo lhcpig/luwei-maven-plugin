@@ -22,7 +22,6 @@ public class HandlerGenerator {
         this.handlerDir = handlerDir;
         this.template = template;
         this.entities = Utils.getAllEntities(proto);
-
     }
 
     public void build() {

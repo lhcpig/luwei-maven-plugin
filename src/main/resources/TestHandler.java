@@ -1,7 +1,7 @@
 package com.luwei.game.test.handler;
 
-import com.luwei.game.handler.common.OutCommandHandler;
-import com.luwei.game.handler.common.OutCommand;
+import com.luwei.game.test.common.OutCommandHandler;
+import com.luwei.game.test.common.OutCommand;
 import com.luwei.game.proto.Server;
 import com.luwei.game.handler2.OutCommands;
 import org.springframework.stereotype.Component;
