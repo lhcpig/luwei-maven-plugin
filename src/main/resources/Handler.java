@@ -1,8 +1,8 @@
 package com.luwei.game.handler2;
 
-import com.luwei.game.handler.common.CommandContext;
-import com.luwei.game.handler.common.InCommandHandler;
-import com.luwei.game.handler.common.InCommand;
+import com.luwei.game.common.CommandContext;
+import com.luwei.game.common.InCommandHandler;
+import com.luwei.game.common.InCommand;
 import com.luwei.game.proto.Client;
 import org.springframework.stereotype.Component;
 
