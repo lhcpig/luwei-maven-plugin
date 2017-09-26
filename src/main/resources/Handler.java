@@ -4,6 +4,7 @@ import com.luwei.game.common.InCommandHandler;
 import com.luwei.game.common.InCommand;
 import com.luwei.game.proto.Client;
 import com.luwei.game.service.user.User;
+import io.netty.channel.Channel;
 import org.springframework.stereotype.Component;
 
 /**
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component;
 public class $cmdKey$Handler extends InCommandHandler<Client.$msg$> {
 
     @Override
-    public void handle(User user, Client.$msg$ message) {
+    public void handle(User user, Client.$msg$ message, Channel channel) {
 
     }
 
