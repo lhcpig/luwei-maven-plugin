@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
  * Created by lhcpig on 2017/7/26.
  */
 public class Utils {
-    public static final String pack = "/com/luwei/game/handler2/".replace('/', File.separatorChar);
+    public static final String pack = "/com/luwei/game/handler/".replace('/', File.separatorChar);
     private static final String DEFAULT_INPUT_DIR = "/src/main/protobuf/".replace('/', File.separatorChar);
 
     public static String getClientProto(MavenProject project) {

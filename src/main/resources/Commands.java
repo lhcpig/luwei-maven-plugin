@@ -1,4 +1,4 @@
-package com.luwei.game.handler2;
+package com.luwei.game.handler;
 
 public interface <clazzName> {
 <lines>
